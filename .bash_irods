@@ -1,5 +1,13 @@
+BASH_IRODS_REPO_DIR=~/software/irods
+
 irods-stop-server() {
     sudo su - irods -c "/var/lib/irods/iRODS/irodsctl stop"
+}
+
+irods-create-database() {
+   sudo su - postgres -c "psql --command=\"create user irods with password 'testpassword';\""
+   sudo su - postgres -c "psql --command='create database \"ICAT\";'"
+   sudo su - postgres -c "psql --command='grant all privileges on database \"ICAT\" to irods;'"
 }
 
 irods-remake-database() {
@@ -17,15 +25,17 @@ irods-uninstall-irods() {
 }
 
 irods-install-irods-dev() {
-    sudo dpkg -i ~/software/irods/build/irods-icat-*.deb ~/software/irods/build/irods-database-plugin-*.deb ~/software/irods/build/irods-dev-*.deb ~/software/irods/build/irods-runtime-*.deb
+    sudo dpkg -i ${BASH_IRODS_REPO_DIR}/build/irods-icat-*.deb ${BASH_IRODS_REPO_DIR}/build/irods-database-plugin-*.deb ${BASH_IRODS_REPO_DIR}/build/irods-dev-*.deb ${BASH_IRODS_REPO_DIR}/build/irods-runtime-*.deb
 }
 
 irods-install-irods-403() {
-    sudo dpkg -i ~/software/irods-old-packages/4.0.3/irods-icat-4.0.3-64bit.deb ~/software/irods-old-packages/4.0.3/irods-database-plugin-postgres-1.3.deb ~/software/irods-old-packages/4.0.3/irods-dev-4.0.3-64bit.deb ~/software/irods-old-packages/4.0.3/irods-runtime-4.0.3-64bit.deb
+    local package_dir=~/software/irods-old-packages/4.0.3
+    sudo dpkg -i ${package_dir}/irods-icat-4.0.3-64bit.deb ${package_dir}/irods-database-plugin-postgres-1.4.deb ${package_dir}/irods-dev-4.0.3-64bit.deb ${package_dir}/irods-runtime-4.0.3-64bit.deb
 }
 
 irods-install-irods-403-debug() {
-    sudo dpkg -i ~/software/irods-old-packages/4.0.3-debug/irods-icat-4.0.3-64bit.deb ~/software/irods-old-packages/4.0.3-debug/irods-database-plugin-postgres-1.3.deb ~/software/irods-old-packages/4.0.3-debug/irods-dev-4.0.3-64bit.deb ~/software/irods-old-packages/4.0.3-debug/irods-runtime-4.0.3-64bit.deb
+    local package_dir=~/software/irods-old-packages/4.0.3-debug
+    sudo dpkg -i ${package_dir}/irods-icat-4.0.3-64bit.deb ${package_dir}/4.0.3-debug/irods-database-plugin-postgres-1.4.deb ${package_dir}/irods-dev-4.0.3-64bit.deb ${package_dir}/irods-runtime-4.0.3-64bit.deb
 }
 
 irods-setup-irods() {
@@ -57,10 +67,10 @@ irods-repave-403-debug() {
 }
 
 irods-rebuild-parameterized() {
-    rm -f ~/software/irods/build/*
-    ~/software/irods/packaging/build.sh clean
-    sudo ~/software/irods/packaging/build.sh $1 icat $2
-    sudo chown -R kellerb:kellerb ~/software/irods
+    rm -f ${BASH_IRODS_REPO_DIR}/build/*
+    ${BASH_IRODS_REPO_DIR}/packaging/build.sh clean
+    sudo ${BASH_IRODS_REPO_DIR}/packaging/build.sh $1 icat $2
+    sudo chown -R kellerb:kellerb ${BASH_IRODS_REPO_DIR}
 }
 
 irods-rebuild-postgres-debug() {
@@ -77,4 +87,9 @@ irods-rebuild-mysql() {
 
 irods-rebuild-oracle() {
     irods-rebuild-parameterized '-r' 'oracle'
+}
+
+irods-repave-tests() {
+    sudo cp ${BASH_IRODS_REPO_DIR}/tests/pydevtest/* ~irods/tests/pydevtest/
+    sudo chown -R irods:irods ~irods/tests/pydevtest/
 }
