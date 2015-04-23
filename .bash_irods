@@ -121,10 +121,9 @@ irods-clone() {
         popd
         cp -r irods /tmp/irods-clone
     fi
-    cd irods
     if [ "$1" != "" ]; then
-        git checkout $1
         pushd irods
+        git checkout $1
         git submodule update
         popd
     fi
