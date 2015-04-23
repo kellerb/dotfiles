@@ -200,7 +200,7 @@ irods-bs-valgrind() {
         while [ $LEFT -le $RIGHT ]; do
 
             MID=$(((LEFT+RIGHT)/2))
-            echo -e "${On_Yellow}$FAILINX || $LEFT >> $MID << $RIGHT || $SUCCINX ${Color_Off}"
+            echo -e "${On_Yellow}$FAILINX || $LEFT >> $MID << $RIGHT || $SUCCINX${Color_Off}"
             irods-valgrind-2 ${ARR[$MID]} $MID
             if [ $SUCC == 1 ]; then
                 SUCCINX=$MID
