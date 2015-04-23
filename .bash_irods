@@ -124,6 +124,9 @@ irods-clone() {
     cd irods
     if [ "$1" != "" ]; then
         git checkout $1
+        pushd irods
+        git submodule update
+        popd
     fi
     echo -e "${Green}cloned $1${Color_Off}"
     popd
