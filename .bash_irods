@@ -1,4 +1,5 @@
 BASH_IRODS_REPO_DIR=~/software/irods
+BASH_IRODS_RELEASES_DIR=~/software/irods-old-packages
 
 irods-stop-server() {
     sudo su - irods -c "/var/lib/irods/iRODS/irodsctl stop"
@@ -16,7 +17,7 @@ irods-remake-database() {
 }
 
 irods-uninstall-irods() {
-    sudo dpkg -P irods-resource-plugin-s3 irods-database-plugin-postgres irods-database-plugin-mysql irods-icat irods-dev irods-runtime irods-api-plugin-gridreport irods-icommands-gridreport
+    sudo dpkg -P irods-resource-plugin-s3 irods-database-plugin-postgres irods-database-plugin-mysql irods-icat irods-dev irods-runtime irods-api-plugin-gridreport irods-icommands-gridreport irods-resource
     sudo userdel irods
     sudo rm -rf /var/lib/irods
     sudo rm -rf /etc/irods
@@ -24,18 +25,20 @@ irods-uninstall-irods() {
     sudo rm -rf /usr/lib/irods
 }
 
+irods-install-irods-from-dir() {
+    sudo dpkg -i \
+        $1/irods-icat-*.deb \
+        $1/irods-database-plugin-*.deb \
+        $1/irods-dev-*.deb \
+        $1/irods-runtime-*.deb
+}
+
 irods-install-irods-dev() {
-    sudo dpkg -i ${BASH_IRODS_REPO_DIR}/build/irods-icat-*.deb ${BASH_IRODS_REPO_DIR}/build/irods-database-plugin-*.deb ${BASH_IRODS_REPO_DIR}/build/irods-dev-*.deb ${BASH_IRODS_REPO_DIR}/build/irods-runtime-*.deb
+    irods-install-irods-from-dir ${BASH_IRODS_REPO_DIR}/build
 }
 
-irods-install-irods-403() {
-    local package_dir=~/software/irods-old-packages/4.0.3
-    sudo dpkg -i ${package_dir}/irods-icat-4.0.3-64bit.deb ${package_dir}/irods-database-plugin-postgres-1.4.deb ${package_dir}/irods-dev-4.0.3-64bit.deb ${package_dir}/irods-runtime-4.0.3-64bit.deb
-}
-
-irods-install-irods-403-debug() {
-    local package_dir=~/software/irods-old-packages/4.0.3-debug
-    sudo dpkg -i ${package_dir}/irods-icat-4.0.3-64bit.deb ${package_dir}/4.0.3-debug/irods-database-plugin-postgres-1.4.deb ${package_dir}/irods-dev-4.0.3-64bit.deb ${package_dir}/irods-runtime-4.0.3-64bit.deb
+irods-install-irods-versioned() {
+    irods-install-irods-from-dir ${BASH_IRODS_RELEASES_DIR}/$1
 }
 
 irods-setup-irods() {
@@ -50,27 +53,18 @@ irods-repave-dev() {
     irods-setup-irods
 }
 
-irods-repave-403() {
+irods-repave-versioned() {
     irods-stop-server
     irods-remake-database
     irods-uninstall-irods
-    irods-install-irods-403
-    irods-setup-irods
-}
-
-irods-repave-403-debug() {
-    irods-stop-server
-    irods-remake-database
-    irods-uninstall-irods
-    irods-install-irods-403-debug
+    irods-install-irods-versioned $1
     irods-setup-irods
 }
 
 irods-rebuild-parameterized() {
     rm -f ${BASH_IRODS_REPO_DIR}/build/*
-    ${BASH_IRODS_REPO_DIR}/packaging/build.sh clean
-    sudo ${BASH_IRODS_REPO_DIR}/packaging/build.sh $1 icat $2
-    sudo chown -R kellerb:kellerb ${BASH_IRODS_REPO_DIR}
+    git -C ${BASH_IRODS_REPO_DIR} clean -xffd
+    fakeroot ${BASH_IRODS_REPO_DIR}/packaging/build.sh $1 icat $2
 }
 
 irods-rebuild-postgres-debug() {
